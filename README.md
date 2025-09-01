@@ -1,12 +1,8 @@
-# 🤖 Telegram OpenAI Image Bot
+# Telegram OpenAI Image Bot
 
-This bot takes a text prompt from Telegram and generates an AI image using OpenAI, then sends it back to the chat.
+A Telegram bot that generates images from text prompts using OpenAI.
 
 ## Setup
-
-1. Clone the repo
-2. Create a `.env` file based on `.env.example`
-3. Add your **Telegram Bot Token** and **OpenAI API Key**
-4. Run locally with:
-   ```bash
-   python bot.py
+1. Rename `.env.example` → `.env` and fill in your keys.
+2. Deploy to Render.
+3. Enjoy your AI-powered Telegram bot! 🚀
