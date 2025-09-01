@@ -1,5 +1,4 @@
-# Telegram OpenAI Image Bot
-
+# Telegram-openai-bot
 A Telegram bot that generates images from text prompts using OpenAI.
 
 ## Setup
