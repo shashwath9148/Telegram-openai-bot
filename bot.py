@@ -1,35 +1,52 @@
 import os
-import requests
+import logging
+from flask import Flask
 from telegram import Update
-from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+from openai import OpenAI
 
-# Load tokens from environment
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+# Load environment variables
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-async def generate_image(prompt: str):
-    url = "https://api.openai.com/v1/images/generations"
-    headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
-    data = {"model": "gpt-image-1", "prompt": prompt, "size": "512x512"}
-    
-    response = requests.post(url, headers=headers, json=data)
-    response.raise_for_status()
-    return response.json()["data"][0]["url"]
+# Logging
+logging.basicConfig(level=logging.INFO)
+
+# OpenAI client
+client = OpenAI(api_key=OPENAI_API_KEY)
+
+# Flask app for Render health check
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Bot is running!"
+
+# Telegram Bot Handlers
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("👋 Hello! Send me a prompt and I’ll generate an image with OpenAI.")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_prompt = update.message.text
+    prompt = update.message.text
     await update.message.reply_text("🎨 Generating image... please wait...")
-    try:
-        image_url = await generate_image(user_prompt)
-        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=image_url)
-    except Exception as e:
-        await update.message.reply_text(f"⚠️ Error: {str(e)}")
 
-def main():
-    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    print("🤖 Bot is running...")
-    app.run_polling()
+    result = client.images.generate(
+        model="gpt-image-1",
+        prompt=prompt,
+        size="512x512"
+    )
+
+    image_url = result.data[0].url
+    await update.message.reply_photo(photo=image_url, caption="✅ Here’s your AI-generated image!")
+
+def run():
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
 
 if __name__ == "__main__":
-    main()
+    appbuilder = ApplicationBuilder().token(BOT_TOKEN).build()
+    appbuilder.add_handler(CommandHandler("start", start))
+    appbuilder.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    import threading
+    threading.Thread(target=run).start()
+    appbuilder.run_polling()
