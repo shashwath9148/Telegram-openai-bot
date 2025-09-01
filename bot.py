@@ -3,8 +3,9 @@ import requests
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
 
-TELEGRAM_TOKEN = os.getenv("8253801582:AAHDkzPjXtQ80oqGkV4O-s7ExEF4f-lzJPs")
-OPENAI_API_KEY = os.getenv("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")
+# Load tokens from environment
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 async def generate_image(prompt: str):
     url = "https://api.openai.com/v1/images/generations"
